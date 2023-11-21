@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Books</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+
+  <link rel="stylesheet" href="/ui/css.css">
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+</head>
+
+<body>
+  {{template "navbar"}}
+  <div class="container-lg my-2 p-2 bg-white border rounded">
+    <div class="container my-1">
+      <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookModal">
+          Add Book
+        </button>
+      </div>
+    </div>
+
+    <div class="container py-3 border">
+      <table id="dataTable" class="table table-striped" style="width:100%">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Authors</th>
+            <th>ISBN13</th>
+            <th>ISBN10</th>
+            <th>PublicationYear</th>
+            <th>PublisherName</th>
+            <th>Edition</th>
+            <th>Price</th>
+            <th>View</th>
+            <th>Delete</th>
+            <th>Update</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Data}}
+          <tr>
+            <td>{{.Title}}</td>
+
+            <td>
+              <p> {{range .Authors}}{{.FirstName}} {{.MiddleName}} {{.LastName}} <br>{{end}}</p>
+            </td>
+
+            <td>{{.ISBN13}}</td>
+            <td>{{.ISBN10}}</td>
+            <td>{{.PublicationYear}}</td>
+            <td>{{.PublisherName}}</td>
+            <td>{{.Edition}}</td>
+            <td>{{.Price}}</td>
+            <td>
+
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                data-bs-target="#viewModal{{if .ISBN13}}{{.ISBN13}}{{else}}{{.ISBN10}}{{end}}">
+                View
+              </button>
+
+            </td>
+            <td>
+              <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                Delete
+              </button>
+            </td>
+
+            <td>
+              <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                data-bs-target="#updateModal{{if .ISBN13}}{{.ISBN13}}{{else}}{{.ISBN10}}{{end}}">
+                Update
+              </button>
+            </td>
+          </tr>
+
+          <!--view author book description modal-->
+          <div class="modal fade" id="viewModal{{if .ISBN13}}{{.ISBN13}}{{else}}{{.ISBN10}}{{end}}" tabindex="-1"
+            aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-body">
+                  <div class="container">
+                    <h5 class="text-center">{{.Title}}</h5>
+
+                    <div class="conatiner">
+                      <div>{{.ISBN13}}</div>
+                      <div>{{.ISBN10}}</div>
+                    </div>
+
+                    <div class="container py-2">
+                      <p>Description: Immerse yourself in the world of <b>"{{.Title}}" </b> -a captivating journey
+                        published in <b>{{.PublicationYear}} </b> by <b>{{.PublisherName}}</b>. This <b>
+                          {{.Edition}}</b>
+                        edition, priced at <b> ${{.Price}}</b>, invites readers to embark on an unforgettable literary
+                        adventure. </p>
+                    </div>
+                    <div class="container">
+                      <p>Authors: <br> {{range .Authors}} {{.FirstName}} {{.MiddleName}} {{.LastName}} <br>{{end}}</p>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--end view  modal-->
+
+
+          <!--deletion modal -->
+          <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+
+                <div class="modal-body">
+                  <h4>Are you sure you want to delete this item?</h4>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <form action="/template/deleteBook/{{if .ISBN13}}{{.ISBN13}}{{else}}{{.ISBN10}}{{end}}">
+                    <button type="submit" class="btn btn-danger">Yes</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!---end of deletion modal-->
+
+
+          <!------update modal-->
+          <div class="modal fade" id="updateModal{{if .ISBN13}}{{.ISBN13}}{{else}}{{.ISBN10}}{{end}}" tabindex="-1"
+            aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+
+
+                </div>
+                <div class="modal-body">
+                  <form action="/template/updateBook/{{if .ISBN13}}{{.ISBN13}}{{else}}{{.ISBN10}}{{end}}"
+                    method="post">
+                    <div class="container">
+                      <div class="row ">
+                        <div class="col-md-12 ">
+                          <input type="text" class="form-control" name="title" placeholder="Title" value="{{.Title}}"
+                            aria-label="Title">
+                        </div>
+                        <div class="col-md-12 my-1">
+                          <input type="text" class="form-control" name="isbn10" placeholder="IBSN" value="{{.ISBN10}}"
+                            aria-label="IBSN">
+                        </div>
+                        <div class="col-md-12">
+                          <input type="text" class="form-control" name="isbn13" placeholder="IBSN" value="{{.ISBN13}}"
+                            aria-label="IBSN">
+                        </div>
+
+
+
+
+                      </div>
+                      <div class="container border  my-2 p-2">
+                        <div class="row">
+                          <div class="col-md-4 mb-1">
+                            <input type="text" class="form-control" name="listPrice" placeholder="Price"
+                              value="{{.Price}}" aria-label="List Price">
+                          </div>
+                          <div class="col-md-4  mb-1">
+                            <input type="text" class="form-control" name="edition" placeholder="Edition"
+                              value="{{.Edition}}" aria-label="Edition">
+                          </div>
+                          <div class="col-md-4  mb-1">
+                            <input type="text" class="form-control " name="publicationYear" value="{{.PublicationYear}}"
+                              placeholder="Publication Year" aria-label="PublicationYear">
+                          </div>
+                          <div class="col-12  mb-1">
+                            <input type="text" class="form-control" name="ImageURL" placeholder="Image Path"
+                              value="{{.ImageURL}}" aria-label="Image">
+                          </div>
+                          <div class="col-12 mb-1">
+                            <input type="text" class="form-control" name="PublisherName" value="{{.PublisherName}}"
+                              placeholder="Publisher" aria-label="Publisher">
+                          </div>
+                        </div>
+
+                        <!------------------------------------->
+
+                        <div id="authorsUpdate">
+
+                          {{range .Authors}}
+                          <div class="authorUpdate mb-3 border p-3 rounded">
+                            <h5 class="mb-3">Author Information</h5>
+                            <div class="form-row">
+                              <div class="col">
+                                <label for="first_name">First Name:</label>
+                                <input type="text" class="form-control" value="{{.FirstName}}" name="first_name[]" required>
+                              </div>
+                              <div class="col">
+                                <label for="middle_name">Middle Name:</label>
+                                <input type="text" class="form-control" value="{{.MiddleName}}" name="middle_name[]">
+                              </div>
+                              <div class="col">
+                                <label for="last_name">Last Name:</label>
+                                <input type="text" class="form-control" value="{{.LastName}}" name="last_name[]" required>
+                              </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary mt-3" onclick="addUpdate()">Add Author</button>
+                            <button type="button" class="btn btn-danger mt-3" onclick="removeUpdate(this)">Remove Author</button>
+                        </div>
+                        {{end}}
+                        </div>
+                       
+                      </div>
+
+                      <!------------------------------------->
+
+
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+                </form>
+              </div>
+            </div>
+          </div>
+    </div>
+
+    <!--update modal -->
+    {{end}}
+    </tbody>
+    </table>
+  </div>
+  </div>
+  <script>
+    $(document).ready(function () {
+      $('#dataTable').DataTable({
+        "scrollX": true, // Enable horizontal scrolling if needed
+
+      });
+    });
+  </script>
+
+
+  <!--Add author book Modal-->
+  <div class="modal fade" id="addBookModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+          <div class="container">
+            <form action="/template/submit" method="post" id="authorForm">
+              <div class="row">
+                <div class="col">
+                  <input type="text" class="form-control" name="title" placeholder="Title" aria-label="Title">
+                </div>
+                <div class="col">
+                  <input type="text" class="form-control" name="isbn" placeholder="IBSN" aria-label="IBSN">
+                </div>
+              </div>
+              <div class="container border  my-2 p-2">
+                <div class="row ">
+                  <div class="col-md-4 mb-1">
+                    <input type="text" class="form-control" name="listPrice" placeholder="Price"
+                      aria-label="List Price">
+                  </div>
+                  <div class="col-md-4 mb-1">
+                    <input type="text" class="form-control" name="edition" placeholder="Edition" aria-label="Edition">
+                  </div>
+                  <div class="col-md-4">
+                    <input type="text" class="form-control " name="publicationYear" placeholder="Publication Year"
+                      aria-label="PublicationYear">
+                  </div>
+                  <div class="col-12 my-2">
+                    <input type="text" class="form-control" name="ImageURL" placeholder="Image Path" aria-label="Image">
+                  </div>
+
+                  <div class="col-12 ">
+                    <input type="text" class="form-control" name="PublisherName" placeholder="Publisher"
+                      aria-label="Publisher">
+                  </div>
+                </div>
+              </div>
+              <div id="authorsAdd">
+                <div class="authorAdd mb-3 border p-3 rounded">
+                  <h5 class="mb-3">Author Information</h5>
+                  <div class="form-row">
+                    <div class="col">
+                      <label for="first_name">First Name:</label>
+                      <input type="text" class="form-control" name="first_name[]" required>
+                    </div>
+                    <div class="col">
+                      <label for="middle_name">Middle Name:</label>
+                      <input type="text" class="form-control" name="middle_name[]">
+                    </div>
+                    <div class="col">
+                      <label for="last_name">Last Name:</label>
+                      <input type="text" class="form-control" name="last_name[]" required>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary mt-3" onclick="addAuthor()">Add Author</button>
+                  <button type="button" class="btn btn-danger mt-3" onclick="removeAuthor(this)">Remove Author</button>
+                </div>
+              </div>
+              <br>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-success">Submit Request</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- sweet alerts-->
+  <!--success data inserted-->
+  {{if eq .Message "data inserted" }}
+  <script>
+    var Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    Toast.fire({
+      icon: "success",
+      title: "{{.Message}}",
+    });
+  </script>
+  {{end}}
+  {{if eq .Success true}}
+  <script>
+    var Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    Toast.fire({
+      icon: "success",
+      title: "{{.Message}}",
+    });
+  </script>
+  {{end}}
+
+  <!--if some error occurs or wrong inputs-->
+  {{if eq .Success false}}
+  <script>
+    var Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    Toast.fire({
+      icon: "error",
+      title: "{{.Message}}",
+    });
+  </script>
+  {{end}}
+
+
+
+  <script src="/ui/myscript.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+    integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+    integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
